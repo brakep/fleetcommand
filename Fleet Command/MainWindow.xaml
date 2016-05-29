@@ -1,67 +1,53 @@
 ﻿<Window x:Class="Fleet_Command.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="589.5" Width="923">
-    <Grid Margin="0,0,2,4">
-        <TabControl Height="545" VerticalAlignment="Bottom">
-            <TabItem Header="General">
-                <Grid HorizontalAlignment="Left" Height="530" Margin="10,0,-3,-3" VerticalAlignment="Top" Width="900">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="107*"/>
-                        <ColumnDefinition Width="806*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="34*"/>
-                        <RowDefinition Height="45*"/>
-                        <RowDefinition Height="376*"/>
-                        <RowDefinition Height="75*"/>
-                    </Grid.RowDefinitions>
-                    <Button Content="Button" HorizontalAlignment="Left" Margin="10,3,0,0" VerticalAlignment="Top" Width="75" Height="20" Click="Button_Click_1" Grid.Row="1"/>
-                    <ListBox x:Name="charlistbox" Grid.Column="1" HorizontalAlignment="Left" Height="271" Margin="10,12,0,0" Grid.Row="2" VerticalAlignment="Top" Width="205"/>
-                    <TextBox x:Name="textBox1" Grid.Column="1" HorizontalAlignment="Left" Height="46" Margin="234,12,0,0" TextWrapping="Wrap" Text="blablabla" VerticalAlignment="Top" Width="551" Grid.Row="2"/>
-                    <Button Content="Register &#xD;&#xA;Schema" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75" Height="48" Click="Button_Click"/>
-                    <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,133,0,0" Grid.Row="2" Height="47" Click="Button_Click_2"/>
-                    <TextBox x:Name="textBox2" Grid.Column="1" HorizontalAlignment="Left" Height="56" Margin="234,63,0,0" TextWrapping="Wrap" Text="blablabla" VerticalAlignment="Top" Width="551" Grid.Row="2"/>
-                    <TextBox x:Name="textBox3" Grid.Column="1" HorizontalAlignment="Left" Height="242" Margin="234,124,0,0" TextWrapping="Wrap" Text="blablabla" VerticalAlignment="Top" Width="551" Grid.Row="2"/>
-                    <Button Content="GetFleet" HorizontalAlignment="Left" Margin="10,99,0,0" Grid.Row="2" VerticalAlignment="Top" Width="75" Click="Button_Click_3" Height="20"/>
-                    <TextBox x:Name="fleetUrl" Grid.Column="1" HorizontalAlignment="Left" Height="28" Margin="234,10,0,0" Grid.Row="1" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="551"/>
-                    <Label Content="Content goes here..." />
-                    <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,198,0,0" Grid.Row="2" Height="59" Click="Button_Click_7"/>
-                    <Button x:Name="parsecharacter" Content="parsechar" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,314,0,0" Grid.Row="2" Click="parsecharacter_Click"/>
-                    <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,339,0,0" Grid.Row="2" Click="Button_Click_6"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Security" >
-                <Grid>
-                    <Button Content="Load Alliances&#xD;&#xA;" RenderTransformOrigin="-2.98,-1.31" Margin="31,10,751,478" Click="Button_Click_4"/>
-                    <TextBox x:Name="allianceList" TextWrapping="Wrap" Text="TextBox" Margin="31,54,10,10"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Fleet" >
-                <Grid Margin="0,-3,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="823*"/>
-                        <ColumnDefinition Width="84*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="fleetBox" HorizontalAlignment="Left" Height="19" Margin="104,11,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="116"/>
-                    <Button x:Name="fleetButton" Content="not loaded" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="76" Click="Button_Click_5" Height="20"/>
-                    <Button x:Name="processFleet" Content="process fleet" HorizontalAlignment="Left" Margin="11,35,0,0" VerticalAlignment="Top" Width="88" Click="processFleet_Click" Height="20"/>
-                    <ListView x:Name="fleetlist" HorizontalAlignment="Left" Height="506" Margin="240,10,0,0" VerticalAlignment="Top" Width="219">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Ship" DisplayMemberBinding="{Binding ship}"/>
-                                <GridViewColumn Header="Count" DisplayMemberBinding="{Binding count}"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Fleet" >
-                <Grid>
-                    <Button x:Name="loadXML" Content="Button" HorizontalAlignment="Left" Margin="47,27,0,0" VerticalAlignment="Top" Width="75" Click="loadXML_Click"/>
-                </Grid>
-            </TabItem>
-        </TabControl>
-
+        Title="Fleet Command" Height="636" Width="313.333" Foreground="#FFB24343" FontFamily="Arial" FontSize="10" ResizeMode="NoResize">
+    <Window.OpacityMask>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF29B9B9" Offset="0"/>
+            <GradientStop Color="#FF21C910" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.OpacityMask>
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FFD1B81A" Offset="0.267"/>
+            <GradientStop Color="#FFF11717" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+    <Window.BorderBrush>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF1700F9" Offset="0"/>
+            <GradientStop Color="#FFD20AFF" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.BorderBrush>
+    <Grid Margin="0,0,-8,0">
+        <ListView x:Name="lvfleet" Margin="10,85,0,0" HorizontalAlignment="Left" Width="206" Height="392" VerticalAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.View>
+                <GridView x:Name="Gridview1"  AllowsColumnReorder="true" ColumnHeaderToolTip="Authors">
+                    <GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding Path=ship}" />
+                    <GridViewColumn Header="Count" Width="30" DisplayMemberBinding="{Binding Path=count}" />
+                    <GridViewColumn Header="System" Width="50" DisplayMemberBinding="{Binding Path=solarsystem}" />
+                    <!--<GridViewColumn Header="Book" Width="40" DisplayMemberBinding="{Binding Path=Book}" />-->
+                    <!--<GridViewColumn Header="MVP" Width="25" DisplayMemberBinding="{Binding Path=Mvp}" />-->
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ListBox x:Name="changebox" Height="113" Margin="10,482,12,0" VerticalAlignment="Top"/>
+        <StackPanel x:Name="sploggedin" Orientation="Horizontal" Margin="164,101,17,463" Visibility="Hidden">
+            <Path Width="28.667" Height="24" SnapsToDevicePixels="False" Stroke="green" StrokeThickness="2"
+        		Data="M 2,4 C 2,4 4,5 5,13 C 5,13 5,3 12,0" Stretch="Fill" />
+            <TextBlock Margin="5,0,0,0" Width="82" FontSize="12" VerticalAlignment="Center"><Run Text="Logged In"/></TextBlock>
+        </StackPanel>
+        <StackPanel x:Name="sploggedout" Orientation="Horizontal" Margin="169,101,12,463" Visibility="Hidden">
+            <Path Width="28.667" Height="24" SnapsToDevicePixels="False" Stroke="red" StrokeThickness="2"
+        		Data="M 2,1 L 1,2  M 1,1 L 2,2" Stretch="Fill" Margin="0,5" VerticalAlignment="Center" />
+            <TextBlock Margin="5,0,0,0" Width="82" FontSize="12" VerticalAlignment="Center"><Run Text="Not Logged In"/></TextBlock>
+        </StackPanel>
+        <Button HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Width="285" Height="51" Click="Button_Click">
+            <Image Source="Image1.png" Stretch="Fill" HorizontalAlignment="Left" Width="278" Height="45"/>
+        </Button>
+        <TextBox x:Name="fleetlink" HorizontalAlignment="Left" Height="20" Margin="10,60,0,0" Text="put fleetlink here...." VerticalAlignment="Top" Width="285" GotFocus="fleetlink_GotFocus" FontSize="12" MaxLines="1"/>
+        <Label x:Name="Label2" Content="Label2" HorizontalAlignment="Left" Margin="221,443,0,0" VerticalAlignment="Top"/>
+        <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="223,144,0,0" Click="Button_Click_3"/>
     </Grid>
 </Window>

@@ -23,8 +23,7 @@ using System.Net.Http.Headers;
 using System.IO;
 using System.Xml;
 using System.Reflection;
-//using System.Runtime.Serialization.Json;
-//using System.Collections.Specialized.NameValueCollection;
+using System.Timers;
 
 namespace Fleet_Command
 {
@@ -70,24 +69,66 @@ namespace Fleet_Command
 
     public partial class MainWindow : Window
     {
+        public System.Windows.Threading.DispatcherTimer dispatcherTimer;
+        public System.Windows.Threading.DispatcherTimer refreshtokenTimer;
+        //public Stopwatch stopwatch = new Stopwatch();
         public MainWindow()
         {
             InitializeComponent();
+            regfleet.updateregister();
+
+            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 3);
+            dispatcherTimer.Start();
+            refreshtokenTimer = new System.Windows.Threading.DispatcherTimer();
+            refreshtokenTimer.Tick += new EventHandler(refreshtokenTimer_Tick);
+            refreshtokenTimer.Interval = new TimeSpan(0, 15, 0);
+            refreshtokenTimer.Start();
+            Activate();
+            Topmost = true;
+            changebox.Items.Clear();
         }
 
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            Label2.Content = DateTime.Now.Minute + ":" + DateTime.Now.Second;
+            GetFleet(fleetlinkparsed);
+            CommandManager.InvalidateRequerySuggested();
+        }
+        private void refreshtokenTimer_Tick(object sender, EventArgs e)
+        {
+            refreshtoken();
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+       
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            RegistryKey key = Registry.CurrentUser.OpenSubKey("Software", true);
-            key = key.OpenSubKey("Classes", true);
-            key = key.CreateSubKey("fleetcommand");
-            key.SetValue("", "URL:Fleet Command");
-            key.SetValue("URL Protocol", "");
-            key = key.CreateSubKey("shell");
-            key = key.CreateSubKey("open");
-            key = key.CreateSubKey("command");
-            string path = "\"" + System.Reflection.Assembly.GetExecutingAssembly().Location+"\" \"%1\"";
-            key.SetValue("", path);
+            if (processfleetlink(fleetlink.Text))
+            {
+               Process.Start("https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=fleetcommand://authresponse&client_id=d5fc31ac1be9495c85d2a075c0005b3a&scope=fleetRead&state=ProcessID");
+            }
         }
+
+        private Boolean processfleetlink(string p)
+        {
+            //throw new NotImplementedException();
+            if (p.Contains(@"https://crest-tq.eveonline.com/fleets/")){
+              fleetlinkparsed = p + @"members/";
+              return true;
+            }else{
+                MessageBox.Show(p + " is not a valid fleet link");
+                return false;
+            }
+
+        }
+        private string client_id = "d5fc31ac1be9495c85d2a075c0005b3a";
+        private string client_secret = "YUmc05otcBGFmB0fD0EfSxizLzFOyKvGSLkp0eWr";
+        private string encoded_key = "ZDVmYzMxYWMxYmU5NDk1Yzg1ZDJhMDc1YzAwMDViM2E6WVVtYzA1b3RjQkdGbUIwZkQwRWZTeGl6THpGT3lLdkdTTGtwMGVXcg==";
+        private string fleetlinkparsed;
+        private string fleetjson;
+        private string crestrespone;
         private string keymaster;
         public string Keymaster
         {
@@ -103,30 +144,30 @@ namespace Fleet_Command
             }
         }
         private string accessToken;
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            Process.Start("https://login.eveonline.com/oauth/authorize?response_type=code&redirect_uri=fleetcommand://authresponse&client_id=d5fc31ac1be9495c85d2a075c0005b3a&scope=fleetRead&state=ProcessID");
-        }
+        private string refresh_token;
 
         private void Button_Click_2(object sender, RoutedEventArgs e){
             blabla(keymaster);
-            //var jsonTask = GetJsonAsync(keymaster).Result;
-            //textBox1.Text = jsonTask;
-            //textBox.Text = jsonTask.ToString();
-            //textBox.Text = jsonTask.Result;
-          //  MessageBox.Show(jsonTask.Result);
         }
-        public async void GetFleet(string fleeturi)
+
+        async Task<string> DoWebRequest(string cresturi)
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri("https://crest-tq.eveonline.com/");
-            HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, fleeturi);
+            HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, cresturi);
             crestRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             HttpResponseMessage crestResponseMessage = await client.SendAsync(crestRequest);
-            var response = await crestResponseMessage.Content.ReadAsStringAsync();
-            JObject parsedresponse = JObject.Parse(response);
-            textBox3.Text += response;
+            string response = await crestResponseMessage.Content.ReadAsStringAsync();
+            return response;
+        }
+
+
+        public async void GetFleet(string fleeturi)
+        {
+            Task<string> task = DoWebRequest(fleeturi);
+            fleetjson = await task;
+            processFleet(fleetjson);
+            //MessageBox.Show(fleetjson);
         }
         public async void ParsFleet(string memberuri)
         {
@@ -137,7 +178,7 @@ namespace Fleet_Command
             HttpResponseMessage crestResponseMessage = await client.SendAsync(crestRequest);
             var response = await crestResponseMessage.Content.ReadAsStringAsync();
             var mycharacter = JsonConvert.DeserializeObject<RootCharacter>(response);
-            charlistbox.Items.Add(mycharacter.corporation.name + " " + mycharacter.name);
+            //charlistbox.Items.Add(mycharacter.corporation.name + " " + mycharacter.name);
 
         }
         public async void blabla(string blablabla)
@@ -150,39 +191,35 @@ namespace Fleet_Command
                 {
                     new KeyValuePair<string, string>("code", blablabla),
                     new KeyValuePair<string, string>("grant_type", "authorization_code"),
-                    new KeyValuePair<string, string>("client_id", "d5fc31ac1be9495c85d2a075c0005b3a"),
-                    new KeyValuePair<string, string>("client_secret", "YUmc05otcBGFmB0fD0EfSxizLzFOyKvGSLkp0eWr"),
+                    new KeyValuePair<string, string>("client_id", client_id),
+                    new KeyValuePair<string, string>("client_secret", client_secret),
                 }
             );
             var myresp = await (await client.SendAsync(request)).Content.ReadAsStringAsync();
-            //JObject response = JObject.Parse(await (await client.SendAsync(request)).Content.ReadAsStringAsync());
-            textBox1.Text = myresp;
             JObject response = JObject.Parse(myresp);
-            //JObject accesresponse = JObject.Parse
             accessToken = response["access_token"].Value<string>();
-            textBox2.Text = response["access_token"].Value<string>();
+            refresh_token = response["refresh_token"].Value<string>();
+            GetFleet(fleetlinkparsed);
 
-
-            GetFleet(fleetUrl.Text);
-
-            /*
-            HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, "https://crest-tq.eveonline.com/fleets/1085811234913/");
-            //HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, "https://crest-tq.eveonline.com/fleets/");
-            //crestRequest.Headers.Authorization = new AuthenticationHeaderValue("Authorization", "Bearer" + accessToken);
-            crestRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer",  accessToken);
-            //crestRequest.Headers.Add("Authorization", "B2earer " + accessToken);
-            HttpResponseMessage crestResponseMessage = await client.SendAsync(crestRequest);
-            //crestResponseMessage.EnsureSuccessStatusCode();
-
-            //JObject crestResponseJson = JObject.Parse(await crestResponseMessage.Content.ReadAsStringAsync());
-            textBox3.Text = await crestResponseMessage.Content.ReadAsStringAsync();
-            
-            */
         }
 
-        private void Button_Click_3(object sender, RoutedEventArgs e)
+
+        public async void refreshtoken()
         {
-            GetFleet(fleetUrl.Text);
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri("https://crest-tq.eveonline.com/");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri("https://login.eveonline.com/oauth/token"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", encoded_key);
+            request.Content = new FormUrlEncodedContent(
+                new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("grant_type", "refresh_token"),
+                    new KeyValuePair<string, string>("refresh_token", refresh_token),
+                }
+            );
+            var myresp = await (await client.SendAsync(request)).Content.ReadAsStringAsync();
+            JObject response = JObject.Parse(myresp);
+            accessToken = response["access_token"].Value<string>();
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
@@ -193,25 +230,12 @@ namespace Fleet_Command
         private async void GetAlliances()
         {
             HttpClient client = new HttpClient();
-            //client.BaseAddress = new Uri("https://crest-tq.eveonline.com/");
-            //HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, "https://crest-tq.eveonline.com/fleets/1085811234913/wings/");
-            //HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, "https://api.eveonline.com/eve/AllianceList.xml.aspx");
             HttpRequestMessage crestRequest = new HttpRequestMessage(HttpMethod.Get, "https://public-crest.eveonline.com/alliances/");
-            // crestRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             HttpResponseMessage crestResponseMessage = await client.SendAsync(crestRequest);
-            allianceList.Text = await crestResponseMessage.Content.ReadAsStringAsync();
         }
 
         private void Button_Click_5(object sender, RoutedEventArgs e)
         {
-            //string mytext = "";
-            using (var streamReader = new StreamReader(@"C:\temp\jsonfleet.txt", Encoding.UTF8))
-            {
-                //mytext = streamReader.ReadToEnd();
-                fleetBox.Text = streamReader.ReadToEnd();
-                fleetButton.Content = "Loaded";
-            }
-
         }
         public class SolarSystem
         {
@@ -308,39 +332,113 @@ namespace Fleet_Command
             private string _ship;
             public string ship { get { return _ship; } set { _ship = value; } }
             public int count { get; set; }
+            public string solarsystem { get; set; }
+        }
+        
+        public List<CountShips> fleetlist = new List<CountShips>();
+
+        public class fleetpilot
+        {
+            public string name { get; set; }
+            public int id { get; set; }
+            private string _ship;
+            public string ship { 
+                get 
+                {
+                    return _ship;
+                } 
+                set
+                {
+                    if (value != _ship) 
+                    {
+                        oldship = _ship;
+                        shipchanged = true;
+                        _ship = value;
+                        if (value != "Capsule")
+                        {
+                            shipchanged = false;
+                        }
+                    }
+                    else
+                    {
+                        shipchanged = false;
+                    }
+                }
+            }
+            public string solarsystem { get; set; }
+            public Boolean active { get; set; }
+            public Boolean shipchanged { get; set; }
+            public string oldship { get; set; }
+
         }
 
-        private void processFleet_Click(object sender, RoutedEventArgs e)
+        public List<fleetpilot> totalfleet = new List<fleetpilot>();
+
+        private void processFleet(string jsonstring)
         {
-            var model = JsonConvert.DeserializeObject<RootObject>(fleetBox.Text); 
+            var model = JsonConvert.DeserializeObject<RootObject>(jsonstring);
+            if (model.items != null){
+            lvfleet.ItemsSource = null;
+            fleetlist.Clear();
             foreach (var fleetmember in model.items)
             {
-                //fleetlist.Items.Add(fleetmember.character.name);
-            }
-
-
-
-
-            List<CountShips> countshiplist  = new List<CountShips>();
-
-
-            var shiplist = new List<StringSplitOptions>();
-            foreach (var fleetmember in model.items)
-            {
-                CountShips doubleitem = countshiplist.Find(x => x.ship == fleetmember.ship.name);
-                if (doubleitem == null)
+                fleetpilot findpilot = totalfleet.Find(x => (x.id == fleetmember.character.id));
+                if (findpilot == null)
                 {
-                countshiplist.Add(new CountShips { ship = fleetmember.ship.name, count = 1 });
-                }else{
-                    doubleitem.count++;
+                    totalfleet.Add(new fleetpilot { name = fleetmember.character.name, id = fleetmember.character.id, ship = fleetmember.ship.name, solarsystem = fleetmember.solarSystem.name, active = true });
                 }
-                
-            }
-            foreach (var myship in countshiplist)
-            {
-                fleetlist.Items.Add(new CountShips { ship = myship.ship, count = myship.count });
+                else
+                {
+                    //
+                    findpilot.active = true;
+                    findpilot.ship = fleetmember.ship.name;
+                    findpilot.solarsystem = fleetmember.solarSystem.name;
+                }
             }
 
+
+            foreach (var fleetmember in totalfleet)
+            {
+                if (fleetmember.active) { 
+                    CountShips doubleitem = fleetlist.Find(x => (x.ship == fleetmember.ship) && (x.solarsystem == fleetmember.solarsystem));
+                    if (doubleitem == null)
+                    {
+                        fleetlist.Add(new CountShips { ship = fleetmember.ship, count = 1, solarsystem = fleetmember.solarsystem });
+                    }
+                    else
+                    {
+                        if (fleetmember.active)
+                        {
+                            doubleitem.count++;
+                        }
+                    }
+                    if (fleetmember.shipchanged)
+                    {
+                        //ListBoxItem s = new ListBoxItem();
+                        //ListBoxItem myBox = new ListBoxItem("test");
+                    
+                       // changebox.Items.Insert(0, myBox);
+
+
+                        changebox.Items.Insert(0, string.Format("{0:hh:mm:ss}", DateTime.Now) + ">" + fleetmember.solarsystem + " , " + fleetmember.name + ":  " + fleetmember.oldship + " => " + fleetmember.ship);
+                        fleetmember.shipchanged = false;
+                        //changebox.Items.Add(fleetmember.solarsystem + " , " + fleetmember.name + ":  " + fleetmember.oldship + " => " + fleetmember.ship);
+                       // ListBoxItem myitem = (changebox.Items[0] as ListBoxItem);
+                        //var listboxitem = (ListBoxItem)changebox.ItemContainerGenerator.ContainerFromItem(changebox.Items[0]);
+                        //Color col = (Color)ColorConverter.ConvertFromString("Red");
+                        //Brush brush = new SolidColorBrush(col);
+                        //listboxitem.Background = brush;
+                    }
+                }
+            }
+            fleetlist.Sort((x, y) => y.count.CompareTo(x.count));
+            lvfleet.ItemsSource = fleetlist;
+            }
+            //foreach (var myship in countshiplist)
+            //{
+                //fleetlist.Items.Add(new CountShips { ship = myship.ship, count = myship.count });
+            //}
+            
         }
         public class allalliances
         {
@@ -366,30 +464,46 @@ namespace Fleet_Command
 
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
-            var model = JsonConvert.DeserializeObject<RootObject>(textBox3.Text);
-            textBox3.Clear();
-            foreach (var fleetmember in model.items)
-            {
-                ParsFleet(fleetmember.character.href);
-            }
+            //var model = JsonConvert.DeserializeObject<RootObject>(textBox3.Text);
+            //textBox3.Clear();
+            //foreach (var fleetmember in model.items)
+            //{
+            //    ParsFleet(fleetmember.character.href);
+           // }
 
         }
 
         private void parsecharacter_Click(object sender, RoutedEventArgs e)
         {
             //
-            textBox3.Clear();
+            //textBox3.Clear();
             GetFleet("https://crest-tq.eveonline.com/characters/93883323/");
         }
 
         private void Button_Click_6(object sender, RoutedEventArgs e)
         {
-            var mycharacter = JsonConvert.DeserializeObject<RootCharacter>(textBox3.Text);
-            textBox3.Text = mycharacter.corporation.name + " " + mycharacter.name;
+            //var mycharacter = JsonConvert.DeserializeObject<RootCharacter>(textBox3.Text);
+            //textBox3.Text = mycharacter.corporation.name + " " + mycharacter.name;
 
             //JObject response = JObject.Parse(textBox3.Text);
             //textBox3.Text = response["name"].Value<string>();
 
+        }
+
+        private void fleetlink_GotFocus(object sender, RoutedEventArgs e)
+        {
+            fleetlink.Text = "";
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            GetFleet(fleetlinkparsed);
+
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            refreshtoken();
         }
 
     }
