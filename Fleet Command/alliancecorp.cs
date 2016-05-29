@@ -14,7 +14,7 @@ namespace Fleet_Command
             alliancename = name;
             allianceid = id;
         }
-        private string alliancename;
+        private string alliancename;   //aa
         private string allianceid;
         public string AllianceName { get {return alliancename;}  }
         public string AllianceID { get { return allianceid; } }
